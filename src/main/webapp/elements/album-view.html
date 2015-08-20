@@ -1,0 +1,165 @@
+<dom-module id="album-view">
+    <style>
+        .box-style {
+            width: 700px;
+            min-height: 300px;
+            max-height: 700px;
+            top: 50px;
+        }
+
+        .song-list {
+            overflow-y: auto;
+            max-height: 500px;
+        }
+
+        .space-padding {
+            width: 30px;
+        }
+
+        .playButton {
+            width: 40px;
+            height: 40px;
+            color: orangered;
+        }
+
+        .defaultPadding {
+            padding-left: 10px;
+        }
+
+        .headerSection {
+            font-weight: bolder;
+        }
+
+    </style>
+    <template id="viewAlbumInformation">
+        <paper-dialog id="paper-dialog-id" entry-animation="scale-up-animation"
+                      class="box-style">
+            <div class="layout horizontal flex">
+                <img src="{{currentAlbum.thumbNail}}" on-error="handleErrorResponse" width="160" height="180"/>
+
+                <div class="layout vertical flex">
+                    <div class="space-padding"></div>
+                    <div class="layout horizontal flex">
+                        <h3 class="defaultPadding">{{currentAlbum.albumName}}</h3>
+                        <iron-icon class="playButton link-symbol image-style" style="padding-left:10px"
+                                   icon="cloud-download"
+                                   on-click="downloadAlbum"></iron-icon>
+                    </div>
+
+                    <div class="layout horizontal flex defaultPadding">
+                        <span class="headerSection">Producer:</span> <span class="defaultPadding">{{currentAlbum.producer}}</span>
+                    </div>
+                    <div class="layout horizontal flex defaultPadding">
+                        <span class="headerSection">Director:</span> <span class="defaultPadding">{{currentAlbum.director}}</span>
+                    </div>
+                    <div class="layout horizontal flex defaultPadding">
+                        <span class="headerSection">Written By:</span> <span class="defaultPadding">{{currentAlbum.writtenBy}}</span>
+                    </div>
+                    <div class="layout horizontal flex defaultPadding">
+                        <span class="headerSection">Music:</span> <span
+                            class="defaultPadding">{{currentAlbum.music}}</span>
+                    </div>
+                </div>
+
+            </div>
+            <div class="song-list">
+                <template is="dom-repeat" items="{{songNameList}}" as="song" index-as="song_no">
+                    <div class="flex layout horizontal">
+                        <iron-icon class="playButton link-symbol" icon="av:play-circle-outline"
+                                   on-click="setSong"></iron-icon>
+                        <div class="songName">{{song}}</div>
+                        <div class="flex"></div>
+                        <iron-icon class="playButton link-symbol image-style" icon="av:queue"
+                                   on-click="addSongToPlayList"></iron-icon>
+                        <iron-icon class="playButton link-symbol image-style" icon="cloud-download"
+                                   on-click="download"></iron-icon>
+                    </div>
+                </template>
+            </div>
+        </paper-dialog>
+    </template>
+    <script>
+        Polymer({
+            is: 'album-view',
+            properties: {
+                currentAlbum: Object
+            },
+            toggleDialog: function () {
+                document.querySelector("#paper-dialog-id").toggle();
+            },
+            setSong: function (e) {
+                var listOfSongs = [];
+
+                var startIndex = this.getSelection(e);
+                var endIndex = this.currentAlbum.songUrlList.length;
+                for (var i = startIndex; i < endIndex; i++) {
+                    var song = this.getSong(i);
+                    listOfSongs.push(song);
+                }
+
+                var audioPlayer = document.querySelector("#audio-player");
+                audioPlayer.addAndPlay(listOfSongs);
+            },
+            addSongToPlayList: function (e) {
+                var index = this.getSelection(e);
+                var song = this.getSong(index);
+
+                var audioPlayer = document.querySelector("#audio-player");
+                audioPlayer.addSong(song);
+
+                // Show toast message that the song has been added
+                var toast = document.querySelector("#toastMessage");
+                toast.text = (song.name + " is added to playlist");
+                toast.show();
+            },
+            downloadAlbum: function () {
+                var listOfSongs = [];
+
+                var endIndex = this.currentAlbum.songUrlList.length;
+                for (var i = 0; i < endIndex; i++) {
+                    var song = this.getSong(i);
+                    listOfSongs.push(song);
+                }
+
+                this.downloadSongs(listOfSongs);
+
+            },
+            download: function (e) {
+                var index = this.getSelection(e);
+                var song = this.getSong(index);
+
+                var songs = [];
+                songs.push(song);
+                this.downloadSongs(songs);
+            },
+            handleErrorResponse: function (e) {
+                e.target.src = "images/dvd_disc1.png";
+            },
+            getSelection: function (e) {
+                return e.model.__data__.song_no;
+            },
+            getSong: function (index) {
+                var songUrl = this.currentAlbum.songUrlList[index];
+                songUrl = unescape(songUrl);
+                var songName = this.currentAlbum.songNameList[index];
+
+                var song = {};
+                song.name = songName;
+                song.url = songUrl;
+                song.albumName = this.currentAlbum.albumName;
+
+                return song;
+            },
+            downloadSongs: function (songs) {
+                var downloadLink = document.createElement("a");
+                for (var i = 0; i < songs.length; i++) {
+                    downloadLink.download = songs[i].name;
+                    downloadLink.setAttribute('href', songs[i].url);
+                    downloadLink.click();
+                }
+
+                document.body.removeChild(downloadLink);
+            }
+        })
+    </script>
+</dom-module>

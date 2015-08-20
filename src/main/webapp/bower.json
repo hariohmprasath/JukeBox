@@ -1,0 +1,43 @@
+{
+  "name": "webapp",
+  "version": "0.0.0",
+  "homepage": "https://github.com/hariohmprasath/MusicBox",
+  "authors": [
+    "hariohmprasath <Karthick_2>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "event-infinite-scroll": "chadliu23/event-infinite-scroll#master",
+    "font-roboto": "PolymerElements/font-roboto#^1.0.0",
+    "hydrolysis": "Polymer/hydrolysis#^1.11",
+    "iron-a11y-announcer": "polymerelements/iron-a11y-announcer#^1.0.0",
+    "iron-a11y-keys": "PolymerElements/iron-a11y-keys#^1.0.0",
+    "iron-a11y-keys-behavior": "PolymerElements/iron-a11y-keys-behavior#^1.0.0",
+    "iron-ajax": "PolymerElements/iron-ajax#^1.0.0",
+    "iron-autogrow-textarea": "PolymerElements/iron-autogrow-textarea#^1.0.0",
+    "iron-collapse": "PolymerElements/iron-collapse#^1.0.0",
+    "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
+    "iron-elements": "PolymerElements/iron-elements#~1.0.1",
+    "iron-fit-behavior": "PolymerElements/iron-fit-behavior#^1.0.0",
+    "neon-animation": "PolymerElements/neon-animation#^1.0.0",
+    "paper-checkbox": "PolymerElements/paper-checkbox#^1.0.0",
+    "paper-dialog": "PolymerElements/paper-dialog#^1.0.0",
+    "paper-dialog-behavior": "PolymerElements/paper-dialog-behavior#^1.0.0",
+    "paper-dialog-scrollable": "PolymerElements/paper-dialog-scrollable#^1.0.0",
+    "paper-drawer-panel": "PolymerElements/paper-drawer-panel#^1.0.0",
+    "paper-elements": "PolymerElements/paper-elements#~1.0.1",
+    "paper-fab": "PolymerElements/paper-fab#^1.0.0",
+    "waypoints": "~3.1.1",
+    "paper-dropdown-menu": "PolymerElements/paper-dropdown-menu#~1.0.1",
+    "paper-menu-button": "PolymerElements/paper-menu-button#~1.0.2",
+    "paper-tabs": "PolymerElements/paper-tabs#~1.0.1",
+    "iron-pages": "PolymerElements/iron-pages#~1.0.3"
+  }
+}

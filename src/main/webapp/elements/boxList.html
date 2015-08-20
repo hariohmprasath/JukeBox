@@ -1,0 +1,134 @@
+<dom-module id="box-list">
+    <style>
+        .material-card {
+            position: relative;
+            display: inline-block;
+            width: 210px;
+            height: 200px;
+            vertical-align: top;
+            background-color: #fff;
+            box-shadow: 0 12px 15px 0 rgba(0, 0, 0, 0.24);
+            margin: 8px;
+        }
+
+        .material-image {
+            background-repeat: round;
+            min-width: 100%;
+            max-width: 100%;
+            min-height: 140px;
+            max-height: 120px;
+            display: block;
+            width: auto;
+            height: auto;
+            overflow: hidden;
+        }
+
+        .content {
+            text-align: center;
+            font-family: 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            padding-top: 15px;
+            overflow: hidden;
+            font-weight: 400;
+            font-size: 18px;
+            white-space: inherit;
+        }
+
+        .box-list-container {
+            height: 1000px;
+            overflow-y: auto;
+        }
+
+
+        paper-ripple {
+            color: orangered;
+        }
+
+
+    </style>
+
+    <template>
+        <div id="infiniteScroller" class="box-list-container">
+            <template is="dom-repeat" items="{{albums}}" as="album" index-as="album-index">
+                <div id$="[[album-index]]" class="material-card link-symbol" on-click="handleAlbumSelectionClick">
+                    <div><img class="material-image" src="{{album.thumbNail}}" on-error="handleErrorResponse"/>
+                    </div>
+                    <div class="content">{{album.albumName}}</div>
+                    <paper-ripple></paper-ripple>
+                </div>
+            </template>
+
+            <event-infinite-scroll on-reach-bottom="reachBottom"></event-infinite-scroll>
+        </div>
+
+        <album-view id="albumInfoDialog" currentAlbum="{{currentAlbum}}"></album-view>
+    </template>
+
+    <script>
+        Polymer({
+            is: 'box-list',
+            ready: function () {
+                this.isLoading = false;
+            },
+            properties: {
+                albums: [],
+                currentAlbum: Object,
+                songNameList: [],
+                isLoading: Boolean
+            },
+            handleAlbumSelectionClick: function (e) {
+                this.currentAlbum = e.model.__data__.album;
+                console.log('Click happened here: ' + e.model.__data__.album.id);
+                this.songNameList = this.arrayify(this.currentAlbum.songNameList);
+
+                var albumView = document.getElementById("albumInfoDialog");
+                albumView.currentAlbum = this.currentAlbum;
+                albumView.songNameList = this.songNameList;
+                albumView.toggleDialog();
+            },
+            handleErrorResponse: function (e) {
+                e.target.src = "images/dvd_disc1.png";
+            },
+            arrayify: function (obj) {
+                if (obj != null && (obj instanceof Array)) {
+                    return Object.keys(obj).map(function (k) {
+                        return obj[k];
+                    })
+                } else if (obj != null) {
+                    var objArray = [];
+                    objArray.push(obj);
+                    return objArray;
+                }
+            },
+            reachBottom: function () {
+                var BUFFER = 20;
+                var WAY_POINT = "waypoint";
+                var PAGE_SIZE = 80;
+
+                if (this.albums !== undefined) {
+                    var objectIdentifier = (this.albums.length - BUFFER);
+                    var object = document.getElementById(objectIdentifier.toString());
+
+                    var objAttr = $(object).attr(WAY_POINT);
+
+                    var appSelector = document.querySelector("#app");
+
+                    if ((objAttr == null || objAttr === undefined) && !this.isLoading && !appSelector.isSearch) {
+
+                        // Mark it saying loading is in progress
+                        this.isLoading = true;
+
+                        var solrRequest = document.querySelector("#solrRequest");
+                        var searchRequest = {};
+                        searchRequest.searchType = 'album';
+                        searchRequest.start = (this.albums.length / PAGE_SIZE);
+                        searchRequest.numberOfRecords = PAGE_SIZE;
+
+                        solrRequest.params = searchRequest;
+                        solrRequest.generateRequest();
+                    } else if (this.isLoading)
+                        console.log('Loading in progress. So skipped the call to web server.');
+                }
+            }
+        })
+    </script>
+</dom-module>

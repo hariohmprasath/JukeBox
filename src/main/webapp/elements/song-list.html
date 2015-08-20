@@ -1,0 +1,206 @@
+<dom-module id="song-list">
+    <style>
+        #music-content {
+            position: absolute;
+            top: 48px;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            margin-left: 300px;
+            background-color: #e5e5e5;
+            overflow-y: scroll;
+            -webkit-transition: top .25s;
+            -moz-transition: top .25s;
+            -o-transition: top .25s;
+            transition: top .25s;
+        }
+
+        #music-content.material .g-content {
+            position: relative;
+            z-index: 0;
+            margin: 16px 72px 30px 72px;
+            padding: 0;
+        }
+
+        .songlist-container {
+            background-color: white;
+            border-radius: 2px;
+            margin: 24px 8px 0;
+            height: 1000px;
+            overflow-y: auto;
+        }
+
+        .material-shadow-z1 {
+            box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.37);
+            transition: box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .song-table {
+            border-spacing: 0;
+            table-layout: fixed;
+            outline: none;
+            -webkit-user-select: none;
+        }
+
+        table {
+            display: table;
+            border-collapse: separate;
+            border-spacing: 2px;
+            border-color: grey;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px dotted orangered;
+            color: orangered;
+            background-color: #fff;
+            height: 1px;
+            width: 50%;
+        }
+
+        img {
+            width: 150px;
+            height: 180px;
+            padding-left: 10px;
+            border-radius: 20px;
+        }
+
+        td {
+            line-height: 25px;
+        }
+
+        .title {
+            font-size: 18px;
+        }
+
+        .musicDirector {
+            font-size: 13px;
+            font-style: oblique;
+        }
+
+        .songSection {
+            font-size: 14px;
+            padding-left: 10px
+        }
+
+    </style>
+    <template>
+        <div content class="material music-content" style="margin-left: 300px;">
+            <div class="g-content" style="width: 85%;">
+                <div class="songlist-container material-shadow-z1">
+                    <table class="song-table">
+                        <tbody>
+                        <template is="dom-repeat" items="{{albums}}" as="album" index-as="album-index">
+                            <tr id$="[[album-index]]">
+                                <td width="150"><img src="{{album.thumbNail}}"
+                                                     on-error="handleErrorResponse"/></td>
+                                <td width="20%" style="padding:40px">
+                                    <span class="title">{{album.albumName}}</span>
+                                    <br><span class="musicDirector">{{album.music}}</span>
+                                </td>
+                                <td width="100%">
+                                    <table width="100%">
+                                        <tbody>
+                                        <template is="dom-repeat" items="{{album.songNameList}}" as="song">
+                                            <tr>
+                                                <td class="songSection">
+                                                    <div class="flex layout horizontal">
+                                                        <iron-icon albumTarget$="{{album-index}}"
+                                                                   style="cursor: pointer;"
+                                                                   icon="av:play-circle-outline"
+                                                                   class="playButton" on-click="setSong"></iron-icon>
+                                                        <span style="padding-left:5px">{{song}}</span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="3">
+                                    <hr>
+                                </td>
+                            </tr>
+                        </template>
+                        </tbody>
+                    </table>
+
+                    <event-infinite-scroll on-reach-bottom="reachBottom"></event-infinite-scroll>
+                </div>
+            </div>
+        </div>
+    </template>
+    <script>
+        Polymer({
+            is: 'song-list',
+            properties: {
+                albums: [],
+                isLoading: Boolean
+            },
+            handleErrorResponse: function (e) {
+                e.target.src = "images/dvd_disc1.png";
+            },
+            setSong: function (e) {
+                var startIndex = this.getSelection(e);
+                var endIndex = this.albums.length;
+                var songs = [];
+
+                for (var i = startIndex; i < endIndex; i++) {
+                    var x = this.albums[i];
+
+                    for (var counter = 0; counter < x.songNameList.length; counter++) {
+                        var songUrl = x.songUrlList[counter];
+                        songUrl = unescape(songUrl);
+                        var songName = x.songNameList[counter];
+
+                        var song = {};
+                        song.name = songName;
+                        song.url = songUrl;
+                        song.albumName = x.albumName;
+
+                        songs.push(song);
+                    }
+                }
+
+                var audioPlayer = document.querySelector("#audio-player");
+                audioPlayer.addAndPlay(songs);
+            },
+            getSelection: function (e) {
+                return $(e.target).attr("albumtarget");
+            },
+            reachBottom: function () {
+                var BUFFER = 20;
+                var WAY_POINT = "waypoint";
+                var PAGE_SIZE = 80;
+
+                if (this.albums !== undefined) {
+                    var objectIdentifier = (this.albums.length - BUFFER);
+                    var object = document.getElementById(objectIdentifier.toString());
+
+                    var objAttr = $(object).attr(WAY_POINT);
+
+                    var appSelector = document.querySelector("#app");
+
+                    if ((objAttr == null || objAttr === undefined) && !this.isLoading && !appSelector.isSearch) {
+
+                        // Mark it saying loading is in progress
+                        this.isLoading = true;
+
+                        var solrRequest = document.querySelector("#solrRequest");
+                        var searchRequest = {};
+                        searchRequest.searchType = 'song';
+                        searchRequest.start = (this.albums.length / PAGE_SIZE);
+                        searchRequest.numberOfRecords = PAGE_SIZE;
+
+                        solrRequest.params = searchRequest;
+                        solrRequest.generateRequest();
+                    } else if (this.isLoading)
+                        console.log('Loading in progress. So skipped the call to web server.');
+                }
+            }
+        })
+
+    </script>
+</dom-module>

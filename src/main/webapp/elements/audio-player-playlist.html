@@ -1,0 +1,88 @@
+<dom-module id="audio-player-playlist">
+    <style>
+        .playButton {
+            width: 40px;
+            height: 40px;
+            color: orangered;
+        }
+
+        .playlist-box {
+            position: fixed;
+            width: 500px;
+            bottom: 80px !important;
+            right: 0 !important;
+            -webkit-box-shadow: 5px 5px 5px 0;
+            box-shadow: 5px 5px 5px 0;
+        }
+    </style>
+    <template>
+        <!-- Playlist for audio-player -->
+        <paper-dialog id="playlist-audio" entry-animation="slide-down-animation" exit-animation="slide-right-animation" class="playlist-box">
+            <h2>Playlist (<span>{{playlist.length}}</span>)</h2>
+            <hr>
+            <div style="height:300px; overflow-y: auto">
+                <template id="listOfSongsInPlaylist" is="dom-repeat" items="{{playlist}}" as="song" index-as="song_no">
+                    <div class="flex layout horizontal">
+                        <iron-icon class="playButton link-symbol" icon="av:play-circle-outline"
+                                   on-click="setSong"></iron-icon>
+                        <div id$="{{generateElementId(song_no)}}" style="width: 325px; padding-top: 10px">{{appendNo(song_no)}}
+                            <span>{{song}}</span>
+                        </div>
+                        <iron-icon class="playButton link-symbol image-style" icon="remove-circle"
+                                   on-click="removeSong"></iron-icon>
+                    </div>
+                </template>
+            </div>
+        </paper-dialog>
+    </template>
+
+    <script>
+        Polymer({
+            is: 'audio-player-playlist',
+            properties: {
+                playlist: [],
+                currentIndex: Number
+            },
+            toggleDialog: function () {
+                document.querySelector("#playlist-audio").toggle();
+            },
+            toggleCss: function (currentIndex) {
+                var cssClass = "";
+                for (var i = 0; i < this.playlist.length; i++) {
+                    if (i == currentIndex - 1)
+                        cssClass = "currentSong songName";
+                    else
+                        cssClass = "songName";
+
+                    $(document.getElementById(i+"_Song")).attr("class", cssClass);
+                }
+            },
+            generateElementId: function(song){
+                return ((song)+"_Song");
+            },
+            appendNo: function (currentIndex) {
+                return ((currentIndex + 1) + ". ");
+            },
+            setSong: function (e) {
+                var currentIndex = e.model.__data__.song_no;
+                var audioPlayer = document.querySelector("#audio-player");
+                this.toggleCss(currentIndex + 1);
+                audioPlayer.playFromPlayList(currentIndex);
+            },
+            removeSong: function (e) {
+                var currentIndex = e.model.__data__.song_no;
+
+                // Show toast message
+                var toast = document.querySelector("#toastMessage");
+                toast.text = (this.playlist[currentIndex])+" is removed from playlist";
+                toast.show();
+
+                this.playlist.splice(currentIndex, 1);
+                var audioPlayer = document.querySelector("#audio-player");
+                audioPlayer.removeSong(currentIndex);
+                var template = document.querySelector("#listOfSongsInPlaylist");
+                template.render();
+            }
+        })
+    </script>
+</dom-module>
